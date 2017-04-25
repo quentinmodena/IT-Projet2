@@ -1,0 +1,8 @@
+@font-face {
+    font-family: truelies;
+    src: url('../assets/fonts/TrueLies.ttf');
+}
+
+*{
+	font-family: truelies;
+}
