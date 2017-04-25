@@ -1,4 +1,12 @@
-var game = new Phaser.Game(1120, 770, Phaser.CANVAS, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+
+var game = new Phaser.Game(1120, 770, Phaser.CANVAS, 'game', { preload: preload, create: create, update: update, render: render });
+
+var cursors;
+var layer;
+var map;
+var ennemys;
+var level=1;
+var play=false;
 
 function preload() 
 {
@@ -14,42 +22,32 @@ function preload()
 
 }
 
-var cursors;
-var layer;
-var map;
-var ennemys;
+
 
 
 function create() 
 {
-
 	game.physics.startSystem(Phaser.Physics.ARCADE);
 
-    game.stage.backgroundColor = '#2d2d2d'
+	game.stage.backgroundColor = '#2d2d2d';
+	game.time.advancedTiming = true;
 
 	map = game.add.tilemap('map');
 
 	map.addTilesetImage('ground_1x1');
-    map.addTilesetImage('walls_1x2');
-    map.addTilesetImage('tiles2');
+	map.addTilesetImage('walls_1x2');
+	map.addTilesetImage('tiles2');
 
-    layer = map.createLayer('Tile Layer 1');
-    layer.resizeWorld();
+	layer = map.createLayer('Tile Layer 1');
+	layer.resizeWorld();
 
+	
+
+	
+	
 
     //weapon
-    weapon = game.add.weapon(30, 'bullet');
-
-    weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-
-    //  The speed at which the bullet is fired
-    weapon.bulletSpeed = 400;
-
-    //  Speed-up the rate of fire, allowing them to shoot 1 bullet every 60ms
-    weapon.fireRate = 60;
-
-    //  Add a variance to the bullet angle by +- this value
-    weapon.bulletAngleVariance = 10;
+    weapon = weapon(1);
 
 
     //personnage
@@ -66,32 +64,16 @@ function create()
 
     char.body.collideWorldBounds=true;
 
-    weapon.trackSprite(char, 14, 0);
+    weapon.trackSprite(char, 0, 0);
 
-    fireButton = this.input.keyboard.addKey(Phaser.KeyCode.SPACEBAR);
+    spawnEnnemys(2);
 
-
-
-    //ennemy
-    spawnEnnemys(500);
-    /*ennemys = game.add.group();
-    ennemys.enableBody = true;
-    ennemys.physicsBodyType = Phaser.Physics.ARCADE;
-
-    for (var i = 0; i < 10; i++)
+    if(!play)
     {
-        var ennemy = ennemys.create(560,0, 'ennemy');
-
-        //This allows your sprite to collide with the world bounds like they were rigid objects
-        ennemy.body.collideWorldBounds=true;
-        ennemy.body.bounce.setTo(0.9, 0.9);
-        
-    }*/
-
-    
-
-
-
+    	/*game.paused = true;
+    	button = game.add.button(game.world.centerX - 95, 400, 'button', actionOnClick, this, 2, 1, 0); */
+    }
+	
 }
 
 function update() 
@@ -99,27 +81,15 @@ function update()
     game.physics.arcade.collide(char, layer);
 
     ennemys.forEach(function(ennemy) {
-	  	game.physics.arcade.collide(ennemy, layer);
+	  	//game.physics.arcade.collide(ennemy, layer);
 	  	game.physics.arcade.collide(ennemy, char , function(){
 	  		choiseLabel = game.add.text(500, 400, 'PERDU', { font: '30px Arial', fill: '#fff' });
 	  		game.paused = true;
 	  	});
 	  	game.physics.arcade.moveToObject(ennemy, char, ennemy.vitesse);
+	  	game.physics.arcade.overlap(weapon.bullets, ennemy, bulletHitEnnemy);
 	});
-    
-
-    
-
-    //console.log(game.physics.arcade.angleBetween(char, ennemys));
-
-    /*if(ennemys.body.position.x>char.body.position.x+1)
-    {
-    	
-    }
-    else
-    {*/
-    	
-    //}
+   
 
     char.body.velocity.x = 0;
     char.body.velocity.y = 0;
@@ -142,56 +112,101 @@ function update()
         char.body.velocity.x = 200;
     }
 
-    /*if (fireButton.isDown)
+    if (game.input.activePointer.isDown)
     {
-    	weapon.fireAngle=game.physics.arcade.angleToPointer(char);
-        weapon.fire();
-    }*/
-    
+        weapon.fireAtPointer();
+    }   
 
 }
 
 function render() 
 {
 
-    game.debug.text('Click to swap tiles', 32, 32, 'rgb(0,0,0)');
-    game.debug.text('Tile X: ' + layer.getTileX(char.x), 32, 48, 'rgb(0,0,0)');
-    game.debug.text('Tile Y: ' + layer.getTileY(char.y), 32, 64, 'rgb(0,0,0)');
+    game.debug.text('Level : ' + level, 32, 32, 'rgb(0,0,0)');
+    game.debug.text('Ennemys : ' + ennemys.length, 32, 48, 'rgb(0,0,0)');
+    game.debug.text('FPS : ' + game.time.fps, 32, 64, 'rgb(0,0,0)');
+}
 
+function exist(element) {
+  return element.exists;
+}
+
+function bulletHitEnnemy(ennemy, bullet)
+{
+	if(ennemy.health-- <= 0)
+		ennemy.kill();
+	bullet.kill();
+
+	var nextWave=true;
+
+	nextWave=!ennemys.some(exist);
+
+	if(nextWave==true)
+	{
+		level += 1;
+		
+		spawnEnnemys(level*level);
+	}
+
+	
 }
 
 
+
+var i;
+var x;
+var y;
+
 function spawnEnnemys(nbr)
 {
+	i=0;
 	ennemys=[];
-	for(var i=0;i<nbr;i++)
-	{
-		var x;
-		var y;
+	spawnEnnemysTime(nbr);
+}
 
-		switch(Math.floor(Math.random() * 4) + 1)
+function spawnEnnemysTime(nbr)
+{
+	console.log(nbr);
+	
+	setTimeout(function () {
+
+		switch(x)
 		{
-			case 1:
+			case 560:
+				switch(y)
+				{
+					case 0:
+						x = 1100;
+						y = 385;
+						break;
+					case 770:
+						x = 0;
+						y = 385;
+						break;
+				}
+				break;
+			case 0:
 				x = 560;
 				y = 0;
 				break;
-			case 2:
-				x = 0;
-				y = 385;
-				break;
-			case 3:
-				x = 1100;
-				y = 385;
-				break;
-			case 4:
+			case 1100:
 				x = 560;
 				y = 770;
+				break;
+			default:
+				x = 560;
+				y = 0;
 				break;
 		}  
 		ennemys[i] = game.add.sprite(x, y, 'ennemy');
 		ennemys[i].vitesse = 90 + Math.floor(Math.random() * 50) + 1;
+		ennemys[i].health = 2;
     	game.physics.enable(ennemys[i], Phaser.Physics.ARCADE);
-	}
+		i++;
+		if (i < nbr) 
+		{ 
+			spawnEnnemysTime(nbr);
+		}
+	}, 500);
 	
 }
-
