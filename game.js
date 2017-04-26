@@ -13,10 +13,6 @@ var launchGame = {
 		layer = map.createLayer('Tile Layer 1');
 		layer.resizeWorld();
 
-	    //weapon
-	    weapon = setWeapon(1);
-
-
 	    //personnage
 	    map.setCollisionBetween(1, 12);
 
@@ -31,6 +27,8 @@ var launchGame = {
 
 	    char.body.collideWorldBounds=true;
 
+	    //weapon
+	    weapon = setWeapon(1);
 	    weapon.trackSprite(char, 0, 0);
 
 	    spawnEnnemys(2);
@@ -100,7 +98,8 @@ var exist = function (element) {
 
 var bulletHitEnnemy = function (ennemy, bullet)
 {
-	if(ennemy.health-- <= 0)
+	ennemy.health--;
+	if(ennemy.health <= 0)
 		ennemy.kill();
 	bullet.kill();
 
@@ -146,10 +145,10 @@ var spawnEnnemys = function (nbr)
 {
 	i=0;
 	ennemys=[];
-	spawnEnnemysTime(nbr);
+	spawnEnnemysTime(nbr,'ennemy', 2);
 }
 
-var spawnEnnemysTime = function (nbr)
+var spawnEnnemysTime = function (nbr, ennemyType, ennemyHealth)
 {	
 	setTimeout(function () {
 		if(game.state.current=='launchGame')
@@ -182,14 +181,14 @@ var spawnEnnemysTime = function (nbr)
 					y = 0;
 					break;
 			}  
-			ennemys[i] = game.add.sprite(x, y, 'ennemy');
+			ennemys[i] = game.add.sprite(x, y, ennemyType);
 			ennemys[i].vitesse = 90 + Math.floor(Math.random() * 50) + 1;
-			ennemys[i].health = 2;
+			ennemys[i].health = ennemyHealth;
 	    	game.physics.enable(ennemys[i], Phaser.Physics.ARCADE);
 			i++;
 			if (i < nbr) 
 			{ 
-				spawnEnnemysTime(nbr);
+				spawnEnnemysTime(nbr, ennemyType, ennemyHealth);
 			}
 		}
 	}, 500);
