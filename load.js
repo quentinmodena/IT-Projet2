@@ -7,9 +7,10 @@ var load= {
 	    game.load.image('walls_1x2', 'assets/walls_1x2.png');
 	    game.load.image('tiles2', 'assets/tiles2.png');
 	    game.load.image('char', 'assets/char.png');
-	    game.load.image('ennemy', 'assets/ennemy.png');
+	    game.load.image('zombie', 'assets/ennemy.png');
 	    game.load.image('bullet', 'assets/bullet.png');
 	    game.load.image('buttonPlay', 'assets/button-play.png');
+	    game.load.image('backgroundMenu', 'assets/background-menu.jpg');
 	},
 
 	create:function()

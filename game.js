@@ -13,11 +13,25 @@ var launchGame = {
 		layer = map.createLayer('Tile Layer 1');
 		layer.resizeWorld();
 
+<<<<<<< HEAD
+=======
+		//Textes
+		var style = { font: "30px truelies", fill :"black"};
+		viewLevel = game.add.text(32, 32,'Level : ' + level, style);
+		var style2 = { font: "15px truelies", fill :"black"};
+		viewFps = game.add.text(32, 80, 'FPS : ' + game.time.fps,style2);
+
+	    //weapon
+	    weapon = setWeapon(1);
+
+
+>>>>>>> 8171074e2c2fef654ec73ce3211a135b0e63d0af
 	    //personnage
 	    map.setCollisionBetween(1, 12);
 
 		char = game.add.sprite(200, 200, 'char');
 		char.anchor.setTo(0.5, 0.5);
+		char.health=1;
 
 		game.physics.enable(char, Phaser.Physics.ARCADE);
 
@@ -31,7 +45,7 @@ var launchGame = {
 	    weapon = setWeapon(1);
 	    weapon.trackSprite(char, 0, 0);
 
-	    spawnEnnemys(2);
+	    spawnEnnemys(level);
 	},
 	update: function()
 	{
@@ -39,10 +53,15 @@ var launchGame = {
 
 	    ennemys.forEach(function(ennemy) {
 		  	//game.physics.arcade.collide(ennemy, layer);
-		  	game.physics.arcade.collide(ennemy, char , function(){
-		  		game.state.start('lose');
-		  	});
-		  	game.physics.arcade.moveToObject(ennemy, char, ennemy.vitesse);
+		  	if(ennemy.type=='zombie')
+		  	{
+		  		game.physics.arcade.moveToObject(ennemy, char, ennemy.vitesse);
+		  		game.physics.arcade.overlap(char, ennemy, zombieHitChar);
+		  	}
+		  	else
+		  	{
+		  		
+		  	}
 		  	game.physics.arcade.overlap(weapon.bullets, ennemy, bulletHitEnnemy);
 		});
 	   
@@ -75,9 +94,8 @@ var launchGame = {
 	},
 	render: function()
 	{
-		game.debug.text('Level : ' + level, 32, 32, 'rgb(0,0,0)');
-	    game.debug.text('Ennemys : ' + ennemys.length, 32, 48, 'rgb(0,0,0)');
-	    game.debug.text('FPS : ' + game.time.fps, 32, 64, 'rgb(0,0,0)');
+		viewLevel.setText('Level : ' + level);
+		viewFps.setText('FPS : ' + game.time.fps);
 	}
 }
 
@@ -111,14 +129,16 @@ var bulletHitEnnemy = function (ennemy, bullet)
 	{
 		level += 1;
 		
-		spawnEnnemys(level*level);
+		spawnEnnemys(level);
 	}
-
-	
 }
 
-
-
+var zombieHitChar = function (ennemy, char)
+{
+	char.health--
+	if(char.health <= 0)
+		game.state.start('lose');
+}
 
 
 var setWeapon = function (idWeapon)
@@ -141,14 +161,15 @@ var setWeapon = function (idWeapon)
     return weapon;
 }
 
-var spawnEnnemys = function (nbr)
+var spawnEnnemys = function (lvl)
 {
 	i=0;
 	ennemys=[];
-	spawnEnnemysTime(nbr,'ennemy', 2);
+	spawnEnnemysTime(lvl*lvl,'zombie',100,150,2);
+	spawnEnnemysTime(lvl*lvl,'shooter',100,150,2);
 }
 
-var spawnEnnemysTime = function (nbr, ennemyType, ennemyHealth)
+var spawnEnnemysTime = function (nbr,ennemyType,vitesseMax,vitesseMin,health)
 {	
 	setTimeout(function () {
 		if(game.state.current=='launchGame')
@@ -182,13 +203,14 @@ var spawnEnnemysTime = function (nbr, ennemyType, ennemyHealth)
 					break;
 			}  
 			ennemys[i] = game.add.sprite(x, y, ennemyType);
-			ennemys[i].vitesse = 90 + Math.floor(Math.random() * 50) + 1;
-			ennemys[i].health = ennemyHealth;
+			ennemys[i].type=ennemyType;
+			ennemys[i].vitesse = Math.floor(Math.random()*(vitesseMax-vitesseMin+1)+vitesseMin);
+			ennemys[i].health = health;
 	    	game.physics.enable(ennemys[i], Phaser.Physics.ARCADE);
 			i++;
 			if (i < nbr) 
 			{ 
-				spawnEnnemysTime(nbr, ennemyType, ennemyHealth);
+				spawnEnnemysTime(nbr,ennemyType,vitesseMax,vitesseMin,health);
 			}
 		}
 	}, 500);
