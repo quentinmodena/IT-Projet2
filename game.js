@@ -1,11 +1,7 @@
 /* TODO
-*	POWERUPS
-*	style map
-*	sprite weapon ?
-*	Boss tous les x lvls
-*	Pause
 *
 BUGS:
+*	character bloque
 *	hitbox carrée
 *
 *
@@ -58,6 +54,9 @@ var launchGame = {
 
 	    //Spawn ennemies (only lvl 1)
 	    spawnEnnemys(level);
+
+
+	    
 	},
 	update: function()
 	{
@@ -67,30 +66,37 @@ var launchGame = {
 		//Collision bonus / char
 		game.physics.arcade.overlap(char, bonus, charGetBonus);
 
+		//Collision bullet / layer
+		game.physics.arcade.collide(layer, char.weapon.bullets,  bulletsHitLayer);
+
 		//Gestion ia
 	    ennemys.forEach(function(ennemy) {
+	    	game.physics.arcade.collide(ennemy, layer);
+
 		  	if(ennemy.type=='zombie' && ennemy.exists)
 		  	{
-		  		game.physics.arcade.moveToObject(ennemy, char, ennemy.vitesse);
+		  		//if (!ennemy.isBlocked)
+		  		//{
+		  			game.physics.arcade.moveToObject(ennemy, char, ennemy.vitesse);
+		  		//}
+
 		  		game.physics.arcade.overlap(char, ennemy, zombieHitChar);
 		  	}
 		  	else if (ennemy.type=='shooter')
 		  	{
-		  		game.physics.arcade.collide(ennemy, layer);
-
-		  		
-
 		  		if (game.physics.arcade.distanceBetween(char, ennemy) < 600 && ennemy.exists)
 			    {
 
 			        ennemy.weapon.fireAtSprite(char);
-			        
 			    }
 			    else
 			    {
+
 			    	game.physics.arcade.moveToObject(ennemy, char, ennemy.vitesse);
+			    	
 			    }
-			    game.physics.arcade.overlap(char,ennemy.weapon.bullets,  zombieHitChar);
+			    game.physics.arcade.overlap(char, ennemy.weapon.bullets,  zombieHitChar);
+			    game.physics.arcade.collide(layer, ennemy.weapon.bullets,  bulletsHitLayer);
 
 		  	}
 		  	game.physics.arcade.overlap(char.weapon.bullets, ennemy, bulletHitEnnemy);
@@ -132,6 +138,17 @@ var launchGame = {
 	}
 }
 
+//pause / unpause
+document.onkeydown = function(e) {
+  if (game.paused)
+  	game.paused=false;
+  else if (e.keyCode === 27) 
+  	game.paused=true;
+};
+
+
+
+
 var cursors;
 var layer;
 var map;
@@ -156,10 +173,12 @@ var bulletHitEnnemy = function (ennemy, bullet)
 	if(ennemy.health <= 0)
 	{
 		killEnnemy(ennemy);
-	}
-	
+	}	
+}
 
-	
+var bulletsHitLayer = function(bullet,layer)
+{
+	bullet.kill();
 }
 
 var zombieHitChar = function (ennemy, char)
@@ -168,6 +187,16 @@ var zombieHitChar = function (ennemy, char)
 	if(char.health <= 0)
 		game.state.start('lose');
 }
+/*
+var ennemyCollideLayer = function (ennemy, layer)
+{
+	ennemy.isBlocked = true;
+
+	if(ennemy.position.x==ennemy.previousPosition.x)
+	{
+		game.physics.arcade.moveToXY(ennemy, ennemy.position.x, ennemy.position.y-50, ennemy.vitesse, );
+	}
+}*/
 
 //Init weapons argument != selon type de personnage 
 var setWeapon = function (idWeapon)

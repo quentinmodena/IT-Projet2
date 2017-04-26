@@ -35,6 +35,7 @@ var spawnEnnemysTime = function (nbr,ennemyType,vitesseMax,vitesseMin,health,sho
 			ennemys[i].type=ennemyType;
 			ennemys[i].vitesse = Math.floor(Math.random()*(vitesseMax-vitesseMin+1)+vitesseMin);
 			ennemys[i].health = health;
+			ennemys[i].isBlocked = false;
 
 			if(ennemyType=='shooter')
 			{

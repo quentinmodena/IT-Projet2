@@ -1,7 +1,6 @@
 //Generation "aleatoire" position bonus
 var newBonus = function ()
 {
-	console.log('bonus');
 	if(typeof bonus == 'undefined' || !bonus.visible)
 	{
 		var pox,posy,typeBonus;
