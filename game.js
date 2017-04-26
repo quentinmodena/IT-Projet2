@@ -1,6 +1,21 @@
+/* TODO
+*	POWERUPS
+*	style map
+*	sprite weapon ?
+*	Boss tous les x lvls
+*	Pause
+*
+BUGS:
+*	hitbox carrée
+*
+*
+*/
+
+
 var launchGame = {
 	create:function()
 	{
+		//Init map
 		game.stage.backgroundColor = '#2d2d2d';
 		game.time.advancedTiming = true;
 
@@ -10,25 +25,21 @@ var launchGame = {
 		map.addTilesetImage('walls_1x2');
 		map.addTilesetImage('tiles2');
 
+		map.setCollisionBetween(1, 12);
+
 		layer = map.createLayer('Tile Layer 1');
 		layer.resizeWorld();
 
-<<<<<<< HEAD
-=======
-		//Textes
-		var style = { font: "30px truelies", fill :"black"};
-		viewLevel = game.add.text(32, 32,'Level : ' + level, style);
-		var style2 = { font: "15px truelies", fill :"black"};
-		viewFps = game.add.text(32, 80, 'FPS : ' + game.time.fps,style2);
-
-	    //weapon
-	    weapon = setWeapon(1);
+		
+		var style2 = { font: "30px truelies", fill :"black"};
+		viewKills = game.add.text(32, 32, 'KILLS : ' + kills,style2);
+		viewFps = game.add.text(32, 76, 'FPS : ' + game.time.fps,style2);
+		var style3 = { font: "50px truelies ", fill :"black",align:'center', boundsAlignH: "center",boundsAlignV: "center"};		
+		transition = game.add.text(0, 360, 'level '+level,style3);
+		transition.setTextBounds(0, 0, 1120, 300);
 
 
->>>>>>> 8171074e2c2fef654ec73ce3211a135b0e63d0af
-	    //personnage
-	    map.setCollisionBetween(1, 12);
-
+	    //Init character
 		char = game.add.sprite(200, 200, 'char');
 		char.anchor.setTo(0.5, 0.5);
 		char.health=1;
@@ -41,31 +52,51 @@ var launchGame = {
 
 	    char.body.collideWorldBounds=true;
 
-	    //weapon
-	    weapon = setWeapon(1);
-	    weapon.trackSprite(char, 0, 0);
+	    //Init Weapon Character
+	    char.weapon = setWeapon('char');
+	    char.weapon.trackSprite(char, 0, 0);
 
+	    //Spawn ennemies (only lvl 1)
 	    spawnEnnemys(level);
 	},
 	update: function()
 	{
+		//Collision map / character
 		game.physics.arcade.collide(char, layer);
 
+		//Collision bonus / char
+		game.physics.arcade.overlap(char, bonus, charGetBonus);
+
+		//Gestion ia
 	    ennemys.forEach(function(ennemy) {
-		  	//game.physics.arcade.collide(ennemy, layer);
-		  	if(ennemy.type=='zombie')
+		  	if(ennemy.type=='zombie' && ennemy.exists)
 		  	{
 		  		game.physics.arcade.moveToObject(ennemy, char, ennemy.vitesse);
 		  		game.physics.arcade.overlap(char, ennemy, zombieHitChar);
 		  	}
-		  	else
+		  	else if (ennemy.type=='shooter')
 		  	{
+		  		game.physics.arcade.collide(ennemy, layer);
+
 		  		
+
+		  		if (game.physics.arcade.distanceBetween(char, ennemy) < 600 && ennemy.exists)
+			    {
+
+			        ennemy.weapon.fireAtSprite(char);
+			        
+			    }
+			    else
+			    {
+			    	game.physics.arcade.moveToObject(ennemy, char, ennemy.vitesse);
+			    }
+			    game.physics.arcade.overlap(char,ennemy.weapon.bullets,  zombieHitChar);
+
 		  	}
-		  	game.physics.arcade.overlap(weapon.bullets, ennemy, bulletHitEnnemy);
+		  	game.physics.arcade.overlap(char.weapon.bullets, ennemy, bulletHitEnnemy);
 		});
 	   
-
+	    //Deplacement character
 	    char.body.velocity.x = 0;
 	    char.body.velocity.y = 0;
 
@@ -87,15 +118,17 @@ var launchGame = {
 	        char.body.velocity.x = 200;
 	    }
 
+	    //Tir personnage
 	    if (game.input.activePointer.isDown)
 	    {
-	        weapon.fireAtPointer();
+	        char.weapon.fireAtPointer();
+
 	    } 
 	},
 	render: function()
 	{
-		viewLevel.setText('Level : ' + level);
 		viewFps.setText('FPS : ' + game.time.fps);
+		viewKills.setText('Kills : ' + kills);
 	}
 }
 
@@ -105,6 +138,8 @@ var map;
 var ennemys;
 var level=1;
 var play=false;
+var kills=0;
+var bonus;
 
 var i;
 var x;
@@ -116,21 +151,15 @@ var exist = function (element) {
 
 var bulletHitEnnemy = function (ennemy, bullet)
 {
+	bullet.kill();
 	ennemy.health--;
 	if(ennemy.health <= 0)
-		ennemy.kill();
-	bullet.kill();
-
-	var nextWave=true;
-
-	nextWave=!ennemys.some(exist);
-
-	if(nextWave==true)
 	{
-		level += 1;
-		
-		spawnEnnemys(level);
+		killEnnemy(ennemy);
 	}
+	
+
+	
 }
 
 var zombieHitChar = function (ennemy, char)
@@ -140,78 +169,49 @@ var zombieHitChar = function (ennemy, char)
 		game.state.start('lose');
 }
 
-
+//Init weapons argument != selon type de personnage 
 var setWeapon = function (idWeapon)
 {
-	//switch pour plusirus weapons
+	var weaponSet;
+	switch(idWeapon)
+	{
+		case 'shooter':
+			weaponSet = game.add.weapon(10, 'bulletEnnemy');
 
-	var weapon = game.add.weapon(30, 'bullet');
+		    weaponSet.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+		    weaponSet.bulletSpeed = 150;
+		    weaponSet.fireRate = 2000;
+		    weaponSet.bulletAngleVariance = 10;
+		    weaponSet.bulletAngleOffset= 90;
+		    weaponSet.bulletLifespan=5;
+			break;
+		case 'char':
+			weaponSet = game.add.weapon(30, 'bullet');
 
-    weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
+		    weaponSet.bulletKillType = Phaser.Weapon.KILL_DISTANCE;
+		    weaponSet.bulletSpeed = 700;
+		    weaponSet.fireRate = 150;
+		    weaponSet.bulletAngleVariance = 6;
+		    weaponSet.bulletAngleOffset= 90;
+		    weaponSet.bulletKillDistance = 600;
+		    break;
+		case 'charShotgun':
+			weaponSet = game.add.weapon(20, 'bullet');
 
-    weapon.bulletSpeed = 700;
+		    weaponSet.bulletKillType = Phaser.Weapon.KILL_DISTANCE;
+		    weaponSet.bulletSpeed = 700;
+		    weaponSet.fireRate = 10;
+		    weaponSet.bulletAngleVariance = 15;
+		    weaponSet.bulletAngleOffset= 90;
+		    weaponSet.bulletKillDistance = 450;
+		    break;
 
-    weapon.fireRate = 60;
-
-    weapon.bulletAngleVariance = 6;
-
-    weapon.bulletAngleOffset= 90;
+	}
 
 
-    return weapon;
+    return weaponSet;
 }
 
-var spawnEnnemys = function (lvl)
-{
-	i=0;
-	ennemys=[];
-	spawnEnnemysTime(lvl*lvl,'zombie',100,150,2);
-	spawnEnnemysTime(lvl*lvl,'shooter',100,150,2);
-}
 
-var spawnEnnemysTime = function (nbr,ennemyType,vitesseMax,vitesseMin,health)
-{	
-	setTimeout(function () {
-		if(game.state.current=='launchGame')
-		{
-			switch(x)
-			{
-				case 560:
-					switch(y)
-					{
-						case 0:
-							x = 1100;
-							y = 385;
-							break;
-						case 770:
-							x = 0;
-							y = 385;
-							break;
-					}
-					break;
-				case 0:
-					x = 560;
-					y = 0;
-					break;
-				case 1100:
-					x = 560;
-					y = 770;
-					break;
-				default:
-					x = 560;
-					y = 0;
-					break;
-			}  
-			ennemys[i] = game.add.sprite(x, y, ennemyType);
-			ennemys[i].type=ennemyType;
-			ennemys[i].vitesse = Math.floor(Math.random()*(vitesseMax-vitesseMin+1)+vitesseMin);
-			ennemys[i].health = health;
-	    	game.physics.enable(ennemys[i], Phaser.Physics.ARCADE);
-			i++;
-			if (i < nbr) 
-			{ 
-				spawnEnnemysTime(nbr,ennemyType,vitesseMax,vitesseMin,health);
-			}
-		}
-	}, 500);
-}
+
+

@@ -6,3 +6,4 @@ game.state.add('launchGame',launchGame);
 game.state.add('lose',lose);
 
 game.state.start('boot');
+
