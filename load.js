@@ -13,6 +13,7 @@ var load= {
 	    game.load.image('backgroundMenu', 'assets/background-menu.jpg');
 	    game.load.image('shooter', 'assets/soldier.png');
 	    game.load.image('black', 'assets/black.png');
+	    game.load.image('shotgunHD', 'assets/shotgunHD.png');
 	    game.load.image('shotgun', 'assets/shotgun.png');
 	    game.load.image('nuke', 'assets/bomb.png')
 	},

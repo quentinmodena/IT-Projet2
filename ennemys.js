@@ -45,6 +45,8 @@ var spawnEnnemysTime = function (nbr,ennemyType,vitesseMax,vitesseMin,health,sho
 			}
 			
 	    	game.physics.enable(ennemys[i], Phaser.Physics.ARCADE);
+	    	ennemys[i].body.collideWorldBounds = true;
+	    	
 			i++;
 			if (i < nbr) 
 			{ 

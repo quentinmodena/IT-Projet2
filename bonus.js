@@ -58,7 +58,9 @@ var charGetBonus = function()
 		case 'shotgun':
 			char.weapon = setWeapon('charShotgun');
 			char.weapon.trackSprite(char, 0, 0);
+			shotgunHD.visible=true;
 			game.time.events.add(Phaser.Timer.SECOND * 4, setBaseWeapon, this);
+			event=game.time.events.ms;
 			break;
 		case 'nuke':
 			ennemys.forEach(function(ennemy) {
@@ -72,6 +74,7 @@ var charGetBonus = function()
 
 var setBaseWeapon = function()
 {
+	shotgunHD.visible=false;
 	char.weapon = setWeapon('char');
 	char.weapon.trackSprite(char, 0, 0);
 }

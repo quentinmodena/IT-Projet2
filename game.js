@@ -1,10 +1,9 @@
 /* TODO
-*
+*	PROGRESS BAR BONUS
+*	README
 BUGS:
-*	character bloque
+*	IA
 *	hitbox carrée
-*
-*
 */
 
 
@@ -34,6 +33,9 @@ var launchGame = {
 		transition = game.add.text(0, 360, 'level '+level,style3);
 		transition.setTextBounds(0, 0, 1120, 300);
 
+		timerBonus = game.add.text(940, 46, '',style2);
+		shotgunHD = game.add.sprite(1000, 46, 'shotgunHD');
+		shotgunHD.visible=false;
 
 	    //Init character
 		char = game.add.sprite(200, 200, 'char');
@@ -54,9 +56,6 @@ var launchGame = {
 
 	    //Spawn ennemies (only lvl 1)
 	    spawnEnnemys(level);
-
-
-	    
 	},
 	update: function()
 	{
@@ -71,14 +70,14 @@ var launchGame = {
 
 		//Gestion ia
 	    ennemys.forEach(function(ennemy) {
-	    	game.physics.arcade.collide(ennemy, layer);
+	    	game.physics.arcade.collide(ennemy, layer,ennemyCollideLayer);
 
 		  	if(ennemy.type=='zombie' && ennemy.exists)
 		  	{
-		  		//if (!ennemy.isBlocked)
-		  		//{
+		  		if (!ennemy.isBlocked)
+		  		{
 		  			game.physics.arcade.moveToObject(ennemy, char, ennemy.vitesse);
-		  		//}
+		  		}
 
 		  		game.physics.arcade.overlap(char, ennemy, zombieHitChar);
 		  	}
@@ -92,7 +91,7 @@ var launchGame = {
 			    else
 			    {
 
-			    	game.physics.arcade.moveToObject(ennemy, char, ennemy.vitesse);
+					game.physics.arcade.moveToObject(ennemy, char, ennemy.vitesse);
 			    	
 			    }
 			    game.physics.arcade.overlap(char, ennemy.weapon.bullets,  zombieHitChar);
@@ -135,6 +134,11 @@ var launchGame = {
 	{
 		viewFps.setText('FPS : ' + game.time.fps);
 		viewKills.setText('Kills : ' + kills);
+		console.log(game.time.events.ms-event);
+		if( event !== false && game.time.events.ms-event<4000)
+			timerBonus.setText(Math.round((4000-game.time.events.ms+event)/100)/10);
+		else
+			timerBonus.setText('');
 	}
 }
 
@@ -148,7 +152,7 @@ document.onkeydown = function(e) {
 
 
 
-
+var event=false;
 var cursors;
 var layer;
 var map;
@@ -157,6 +161,7 @@ var level=1;
 var play=false;
 var kills=0;
 var bonus;
+var shotgunHD;
 
 var i;
 var x;
@@ -187,16 +192,108 @@ var zombieHitChar = function (ennemy, char)
 	if(char.health <= 0)
 		game.state.start('lose');
 }
-/*
+
+
 var ennemyCollideLayer = function (ennemy, layer)
 {
-	ennemy.isBlocked = true;
-
-	if(ennemy.position.x==ennemy.previousPosition.x)
+	//"IA"
+	if(!ennemy.isBlocked)
 	{
-		game.physics.arcade.moveToXY(ennemy, ennemy.position.x, ennemy.position.y-50, ennemy.vitesse, );
+
+		ennemy.isBlocked = true;
+
+		game.time.events.add(Phaser.Timer.SECOND * 1.5, function(){
+			ennemy.isBlocked = false;
+		});
+
+		console.log(ennemy.position.y < 420 && ennemy.position.y > 200 , ennemy.position.x < 608 && ennemy.position.x > 900);
+
+		if(ennemy.position.y < 500 && ennemy.position.y > 420 && ennemy.position.x < 750 && ennemy.position.x > 608)
+		{
+			game.physics.arcade.moveToXY(ennemy, 608, 800, ennemy.vitesse );
+		}
+		else if(ennemy.position.y < 500 && ennemy.position.y > 400 && ennemy.position.x < 608 && ennemy.position.x > 350)
+		{
+			game.physics.arcade.moveToXY(ennemy, 70, 900, ennemy.vitesse );
+		}
+		else if(ennemy.position.y < 400 && ennemy.position.y > 200 && ennemy.position.x < 600 && ennemy.position.x > 350)
+		{
+			game.physics.arcade.moveToXY(ennemy, 70, 70, ennemy.vitesse );
+		}
+		else if(ennemy.position.y < 420 && ennemy.position.y > 200 && ennemy.position.x < 900 && ennemy.position.x > 608)
+		{
+			game.physics.arcade.moveToXY(ennemy, 1000, 300, ennemy.vitesse );
+		}
+
+		//IA DE MERDE
+		/*var deltaX=ennemy.body.deltaX();
+		var deltaY=ennemy.body.deltaY();
+		
+		// Come from top left
+		if(deltaX>0 && deltaY>0)
+		{
+			//top left left
+			if(Math.abs(deltaX) > Math.abs(deltaY))
+			{
+				
+				game.physics.arcade.moveToXY(ennemy, ennemy.position.x-100, ennemy.position.y, ennemy.vitesse );
+			}
+			//top left op
+			else
+			{
+				
+				game.physics.arcade.moveToXY(ennemy, ennemy.position.x, ennemy.position.y-100, ennemy.vitesse );
+			}
+		}
+		//Come from top right
+		else if(deltaX<0 && deltaY>0)
+		{
+			//top right right
+			if(Math.abs(deltaX) > Math.abs(deltaY))
+			{
+				game.physics.arcade.moveToXY(ennemy, ennemy.position.x, ennemy.position.y-100, ennemy.vitesse );
+			}
+			else
+			{
+				game.physics.arcade.moveToXY(ennemy, ennemy.position.x+100, ennemy.position.y, ennemy.vitesse );
+			}
+		}
+		//Come from bot right
+		else if(deltaX<0 && deltaY<0)
+		{
+			//bot right right
+			if(Math.abs(deltaX) > Math.abs(deltaY))
+			{
+				game.physics.arcade.moveToXY(ennemy, ennemy.position.x+100, ennemy.position.y, ennemy.vitesse );
+			}
+			//bot bot right
+			else
+			{
+				game.physics.arcade.moveToXY(ennemy, ennemy.position.x, ennemy.position.y+100, ennemy.vitesse );
+			}
+		}
+		//Come from bot left
+		else if(deltaX>0 && deltaY<0)
+		{
+			//bot bot left 
+			if(Math.abs(deltaX) > Math.abs(deltaY))
+			{
+				game.physics.arcade.moveToXY(ennemy, ennemy.position.x, ennemy.position.y+100, ennemy.vitesse );
+			}
+			//bot left left
+			else
+			{
+				game.physics.arcade.moveToXY(ennemy, ennemy.position.x-100, ennemy.position.y, ennemy.vitesse );
+			}
+		}
+		else
+		{
+			console.log('BLOQUE');
+			console.log('X : '+ennemy.body.deltaX());
+			console.log('Y : '+ennemy.body.deltaY());
+		}*/
 	}
-}*/
+}
 
 //Init weapons argument != selon type de personnage 
 var setWeapon = function (idWeapon)

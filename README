@@ -1,0 +1,22 @@
+Createur : Quentin
+
+Do anything
+
+Fonctionnalités :
+
+-	Plusieurs states : menu, jeu, ecran de fin
+-	Gestion des levels (plus les niveaux avancent plus il y ade de zombies) 
+-	Utlisation du JSON pour la map(tilemap)
+-	Une IA basique pour la gestion des collisions avec les murs
+-	gestion des bonus (shotgun / bombe)
+-	Compteur de kills / FPS
+-	Système de pause
+
+Remarques :
+
+DONE Il manque le readme  
+DONE En utilisant le mur au centre pour se cacher des ennemis 
+L'environnement graphique est le même pour tousles niveaux.
+Ajouter un timer pour les armes ramasser (on ne sait pas de combien de munition ou le temps qu il nous reste)
+DONE Pourrrait-on rajouter  un  système  de pause?
+DONE En utilisant le mur au centre pour se cacher des ennemis  les zombies sont  coincés de l'autre  côté. Pour le dernier  zombie  du niveau c'est plus  flagrant.
